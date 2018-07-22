@@ -1,5 +1,6 @@
 package main
 
+import "fmt"
 
 /**
 Given an array of non-negative integers, you are initially positioned at the first index of the array.
@@ -19,3 +20,34 @@ Note:
 You can assume that you can always reach the last index.
 
  */
+
+ /**
+ 贪心
+ 主要概念：
+ 	最大覆盖范围
+ 	当前终点
+ 	跳数
+ 当当前所在位置 > 当前终点，且当前所在位置没有达到最后一个点时，需要跳一步
+  */
+func jump(nums []int) int {
+	curEnd := 0
+	curMaxRange := 0
+	jumps := 0
+	for i, v := range nums{
+		if i+v > curMaxRange {
+			curMaxRange = i+v
+		}
+
+		if i>= curEnd && i < len(nums) - 1{
+			curEnd = curMaxRange
+			jumps++
+		}
+	}
+	return jumps
+}
+
+
+
+func main() {
+	fmt.Println(jump([]int{2,3,1,1,4}))
+}
