@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 /**
 Given a set of non-overlapping intervals, insert a new interval into the intervals (merge if necessary).
 
@@ -16,6 +18,11 @@ Output: [[1,2],[3,10],[12,16]]
 Explanation: Because the new interval [4,8] overlaps with [3,5],[6,7],[8,10].
  */
 
+type Interval struct {
+	Start int
+	End   int
+}
+
 func insert(intervals []Interval, newInterval Interval) []Interval {
 	if len(intervals) == 0 {
 		intervals = append(intervals, newInterval)
@@ -23,6 +30,15 @@ func insert(intervals []Interval, newInterval Interval) []Interval {
 	}
 
 	newIntervals := make([]Interval, 0, len(intervals)+1)
+
+
+	//针对新的interval在第一个时的场景
+	if newInterval.End < intervals[0].Start{
+		newIntervals = append(newIntervals, newInterval)
+		newIntervals = append(newIntervals, intervals...)
+		return newIntervals
+	}
+
 	mergeState := 0
 	inserted := false
 	for i := 0; i < len(intervals); i++ {
@@ -40,19 +56,21 @@ func insert(intervals []Interval, newInterval Interval) []Interval {
 				if i < len(intervals)-1 && intervals[i].End < newInterval.Start && intervals[i+1].Start > newInterval.End{
 					newIntervals = append(newIntervals, newInterval)
 					inserted = true
+					mergeState = 3
 				}
 			case 1:
 				if len(newIntervals) != 0 && canMerge(intervals[i], newIntervals[len(newIntervals)-1]){
-					i--
 					mergeState = 2
 				}else {
-					newIntervals = append(newIntervals, intervals[i])
+					mergeState = 3
 				}
+				i--
 			case 2:
-				latest := newIntervals[len(newIntervals) - 1]
-				if canMerge(latest, intervals[i]){
-					intervals[i].Start = lessOne(latest.Start, intervals[i].Start)
-					intervals[i].End = largerOne(latest.End, intervals[i].End)
+				//slice中的值若非指针，则取值后返回的是原始值的拷贝，对返回的值操作不会影响原有值
+				latest := &newIntervals[len(newIntervals) - 1]
+				if canMerge(*latest, intervals[i]){
+					latest.Start = lessOne(latest.Start, intervals[i].Start)
+					latest.End = largerOne(latest.End, intervals[i].End)
 				}else{
 					mergeState = 3
 					i--
@@ -61,7 +79,7 @@ func insert(intervals []Interval, newInterval Interval) []Interval {
 				newIntervals = append(newIntervals, intervals[i])
 		}
 	}
-	if mergeState != 0 &&  !inserted{
+	if mergeState == 0 &&  !inserted{
 		newIntervals = append(newIntervals, newInterval)
 	}
 	return newIntervals
@@ -91,4 +109,13 @@ func lessOne(i, j int) int {
 		return i
 	}
 	return j
+}
+
+func main() {
+	intervals := []Interval{Interval{1,2}, Interval{3,5}, Interval{6,7}, Interval{8,10},
+	Interval{12,16}}
+
+	newInterval := Interval{4,8}
+
+	fmt.Println(insert(intervals, newInterval))
 }
